@@ -1,13 +1,21 @@
-﻿#include "game_launcher.h"
+#include "game_launcher.h"
 
 #include <QFileInfo>
 
 GameLauncher::GameLauncher(QObject *parent)
     : QObject(parent) {
     connect(&process, &QProcess::started, this, &GameLauncher::gameStarted);
-    connect(&process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this, &GameLauncher::gameFinished);
+    connect(&process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
+            [this](const int exitCode, const QProcess::ExitStatus exitStatus) {
+                const QString message = exitStatus == QProcess::NormalExit
+                                            ? QStringLiteral("Game exited with code %1.").arg(exitCode)
+                                            : QStringLiteral("Game process crashed.");
+                emit gameFinished(message);
+            });
     connect(&process, &QProcess::errorOccurred, this, [this](const QProcess::ProcessError error) {
-        emit launchError(error, process.errorString());
+        if (error == QProcess::FailedToStart) {
+            emit launchError(process.errorString());
+        }
     });
 }
 

@@ -5,6 +5,7 @@
 #include "app_config.h"
 #include "display_mode_service.h"
 #include "game_launcher.h"
+#include "steam_library_service.h"
 
 class QComboBox;
 class QLabel;
@@ -26,6 +27,7 @@ private:
     void reloadModes();
     void saveConfig() const;
     void updateValidation();
+    void loadSteamGames();
     void launchGame();
     void restoreDisplayMode();
     [[nodiscard]] AppConfig currentConfig() const;
@@ -33,11 +35,14 @@ private:
     AppConfigStore configStore;
     DisplayModeService displayModes;
     GameLauncher gameLauncher;
+    SteamLibraryService steamLibraries;
     QLineEdit *gamePathEdit = nullptr;
+    QComboBox *steamGameCombo = nullptr;
     QLabel *displayLabel = nullptr;
     QLabel *currentModeLabel = nullptr;
     QComboBox *modeCombo = nullptr;
     QLabel *statusLabel = nullptr;
     QPushButton *launchButton = nullptr;
+    QPushButton *restoreButton = nullptr;
     QString primaryDeviceName;
 };

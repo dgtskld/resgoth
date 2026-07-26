@@ -15,8 +15,8 @@ public:
 
 signals:
     void gameStarted();
-    void gameFinished(int exitCode, QProcess::ExitStatus exitStatus);
-    void launchError(QProcess::ProcessError error, const QString &message);
+    void gameFinished(const QString &message);
+    void launchError(const QString &message);
 
 private:
     QProcess process;

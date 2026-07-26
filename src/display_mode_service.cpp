@@ -1,6 +1,9 @@
 #include "display_mode_service.h"
 
 #include <algorithm>
+#include <array>
+#include <cmath>
+#include <numeric>
 #include <string>
 
 #include <QCoreApplication>
@@ -52,6 +55,11 @@ DisplayOperationResult failed(const QString &message) {
     writeDisplayLog(message);
     return {false, message};
 }
+
+bool isTestableMode(const std::wstring &deviceName, const DEVMODEW &mode) {
+    DEVMODEW testMode = mode;
+    return ChangeDisplaySettingsExW(deviceName.c_str(), &testMode, nullptr, CDS_TEST, nullptr) == DISP_CHANGE_SUCCESSFUL;
+}
 } // namespace
 
 struct DisplayModeService::SavedDisplayMode {
@@ -63,10 +71,24 @@ DisplayModeService::DisplayModeService() = default;
 DisplayModeService::~DisplayModeService() = default;
 
 QString DisplayMode::label() const {
-    if (refreshRate > 1) {
-        return QStringLiteral("%1 × %2, %3 Hz").arg(width).arg(height).arg(refreshRate);
+    const std::array<std::pair<int, int>, 7> commonRatios{{{16, 9}, {16, 10}, {4, 3}, {5, 4}, {3, 2}, {21, 9}, {32, 9}}};
+    const double ratio = height > 0 ? static_cast<double>(width) / height : 0.0;
+    QString aspectRatio;
+    for (const auto &[ratioWidth, ratioHeight] : commonRatios) {
+        if (std::abs(ratio - static_cast<double>(ratioWidth) / ratioHeight) < 0.005) {
+            aspectRatio = QStringLiteral("%1:%2").arg(ratioWidth).arg(ratioHeight);
+            break;
+        }
     }
-    return QStringLiteral("%1 × %2").arg(width).arg(height);
+    if (aspectRatio.isEmpty()) {
+        const int divisor = std::gcd(width, height);
+        aspectRatio = divisor > 0 ? QStringLiteral("%1:%2").arg(width / divisor).arg(height / divisor)
+                                  : QStringLiteral("unknown");
+    }
+    if (refreshRate > 1) {
+        return QStringLiteral("%1 × %2, %3 Hz (%4)").arg(width).arg(height).arg(refreshRate).arg(aspectRatio);
+    }
+    return QStringLiteral("%1 × %2 (%3)").arg(width).arg(height).arg(aspectRatio);
 }
 
 QVector<MonitorInfo> DisplayModeService::monitors() const {
@@ -111,6 +133,9 @@ QVector<DisplayMode> DisplayModeService::modesFor(const QString &deviceName) con
         mode.dmSize = sizeof(mode);
         if (!EnumDisplaySettingsW(nativeName.c_str(), index, &mode)) {
             break;
+        }
+        if (!isTestableMode(nativeName, mode)) {
+            continue;
         }
 
         const DisplayMode candidate{static_cast<int>(mode.dmPelsWidth),

@@ -19,6 +19,7 @@ add_executable(resgoth
         src/display_mode_service.cpp
         src/game_launcher.cpp
         src/main_window.cpp
+        src/steam_library_service.cpp
 )
 target_include_directories(resgoth PRIVATE src)
 target_link_libraries(resgoth
