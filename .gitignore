@@ -1,0 +1,42 @@
+# CMake build directories and generated files
+/cmake-build-*/
+/build/
+/out/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+CTestTestfile.cmake
+Testing/
+
+# Compiled binaries and libraries
+*.exe
+*.dll
+*.pdb
+*.ilk
+*.lib
+*.a
+*.o
+*.obj
+
+# Qt generated files
+ui_*.h
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+*.qrc.depends
+*.qmlc
+*.jsc
+
+# CLion / IntelliJ IDEA local project data
+/.idea/
+/.codex/
+*.iml
+
+# Local application data and logs
+*.log
+*.ini
+
+# Windows Explorer metadata
+Thumbs.db
+Desktop.ini
