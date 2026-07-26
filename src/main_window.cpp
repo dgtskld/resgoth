@@ -24,6 +24,7 @@ MainWindow::MainWindow() {
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
+    restoreDisplayMode();
     saveConfig();
     QMainWindow::closeEvent(event);
 }
@@ -71,8 +72,25 @@ void MainWindow::setupUi() {
     });
     connect(gamePathEdit, &QLineEdit::textChanged, this, [this] { updateValidation(); });
     connect(modeCombo, qOverload<int>(&QComboBox::currentIndexChanged), this, [this] { updateValidation(); });
-    connect(launchButton, &QPushButton::clicked, this, [this] {
-        statusLabel->setText(QStringLiteral("Game launching will be added in stage 4."));
+    connect(launchButton, &QPushButton::clicked, this, &MainWindow::launchGame);
+    connect(&gameLauncher, &GameLauncher::gameStarted, this, [this] {
+        statusLabel->setText(QStringLiteral("Game is running. The original display mode will be restored when it exits."));
+    });
+    connect(&gameLauncher, &GameLauncher::gameFinished, this, [this](const int exitCode, const QProcess::ExitStatus exitStatus) {
+        restoreDisplayMode();
+        const QString result = exitStatus == QProcess::NormalExit
+                                   ? QStringLiteral("Game exited with code %1.").arg(exitCode)
+                                   : QStringLiteral("Game process crashed.");
+        statusLabel->setText(result + QStringLiteral(" Original display mode restored."));
+        updateValidation();
+    });
+    connect(&gameLauncher, &GameLauncher::launchError, this, [this](const QProcess::ProcessError error, const QString &message) {
+        if (error != QProcess::FailedToStart) {
+            return;
+        }
+        restoreDisplayMode();
+        statusLabel->setText(QStringLiteral("Could not start the game: %1 Original display mode restored.").arg(message));
+        updateValidation();
     });
 }
 
@@ -132,13 +150,49 @@ void MainWindow::updateValidation() {
     const bool displaySelected = !primaryDeviceName.isEmpty() && modeCombo->currentIndex() >= 0;
     const bool valid = gameExists && displaySelected;
 
-    launchButton->setEnabled(valid);
+    launchButton->setEnabled(valid && !gameLauncher.isRunning());
     if (!gameExists) {
         statusLabel->setText(QStringLiteral("Select an existing game EXE file."));
     } else if (!displaySelected) {
         statusLabel->setText(QStringLiteral("Could not get modes for the primary display."));
     } else {
         statusLabel->setText(QStringLiteral("Configuration is valid. Settings will be saved next to the application."));
+    }
+}
+
+void MainWindow::launchGame() {
+    if (gameLauncher.isRunning()) {
+        return;
+    }
+
+    const AppConfig config = currentConfig();
+    const DisplayMode requestedMode{config.width, config.height, config.refreshRate};
+    const DisplayOperationResult modeResult = displayModes.applyMode(config.monitorDeviceName, requestedMode);
+    if (!modeResult.succeeded) {
+        statusLabel->setText(QStringLiteral("Could not apply the launch mode: %1").arg(modeResult.error));
+        return;
+    }
+
+    QString launchError;
+    if (!gameLauncher.launch(config.gamePath, &launchError)) {
+        restoreDisplayMode();
+        statusLabel->setText(launchError + QStringLiteral(" Original display mode restored."));
+        return;
+    }
+
+    launchButton->setEnabled(false);
+    statusLabel->setText(QStringLiteral("Applying launch mode and starting the game…"));
+}
+
+void MainWindow::restoreDisplayMode() {
+    if (!displayModes.hasSavedMode()) {
+        return;
+    }
+
+    const DisplayOperationResult restoreResult = displayModes.restoreMode();
+    updateCurrentMode();
+    if (!restoreResult.succeeded) {
+        statusLabel->setText(QStringLiteral("Could not restore the original display mode: %1").arg(restoreResult.error));
     }
 }
 

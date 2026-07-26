@@ -17,6 +17,7 @@ add_executable(resgoth
         main.cpp
         src/app_config.cpp
         src/display_mode_service.cpp
+        src/game_launcher.cpp
         src/main_window.cpp
 )
 target_include_directories(resgoth PRIVATE src)
