@@ -1,34 +1,31 @@
-# План разработки Resgoth
+# Resgoth Development Plan
 
-## Цель
+## Goal
 
-Создать portable GUI-лаунчер для Windows, который запускает игру в выбранном разрешении рабочего стола и всегда восстанавливает исходный видеорежим после завершения игры или ошибки.
+Build a portable Windows launcher that starts a game executable at a selected primary-display mode and restores the original mode when the game ends or a handled error occurs.
 
-## Реализуемость и техническая основа
+## Technical Approach
 
-Это реалистичная задача для Qt 6 Widgets + C++20. Qt отвечает за интерфейс, выбор файлов, хранение настроек и управление процессом, а Win32 API — за надёжное чтение и смену видеорежимов (`EnumDisplaySettingsW`, `ChangeDisplaySettingsExW`).
+Resgoth uses C++20 and Qt 6 Widgets for the UI, configuration, file selection, and process lifecycle. Win32 APIs (`EnumDisplaySettingsW` and `ChangeDisplaySettingsExW`) enumerate and change display modes.
 
-Первый релиз будет менять разрешение рабочего стола именно на время работы запущенного процесса. Запуск игры через Steam возможен по URI `steam://run/<appId>` или через `steam.exe -applaunch <appId>`, но отслеживание процесса игры для этого потребует отдельной стратегии, поскольку Steam запускает игру не как дочерний процесс лаунчера.
+The MVP changes the Windows primary display only. It does not choose a GPU, move a game window to another display, launch through Steam, or change the mode when focus changes. A game is always launched as a directly selected executable, allowing Resgoth to track it as a child process.
 
-Переключать разрешение при уходе фокуса не стоит включать в основной сценарий: это будет заметно мигать при Alt+Tab, может конфликтовать с полноэкранными играми и не решает задачу надёжнее. Режим наподобие gamescope Windows штатно не предоставляет; для него нужен отдельный композитор/виртуальный дисплей и это существенно расширяет проект. Его оставляем как возможное исследование после MVP.
+## Release Principles
 
-## Принципы первого релиза
+- Support Windows 10 and Windows 11.
+- Restore the display mode after normal completion, launch failure, and a managed launcher close.
+- Store portable settings and diagnostics next to the executable.
+- Ship a portable ZIP with the executable, required Qt DLLs, and the Windows platform plugin; no installer is required.
 
-- Windows 10/11, только первичный дисплей Windows.
-- Восстановление видеорежима при нормальном завершении, ошибках запуска и управляемом закрытии лаунчера.
-- Если восстановить режим не удалось, приложение показывает ясную ошибку и оставляет диагностическую запись.
-- Portable-поставка: по возможности один `.exe`; настройки рядом с ним в небольшом INI-файле. Отдельный этап оценит статическую сборку Qt и альтернативы упаковки.
-- Сначала прямой запуск `.exe`; запуск Steam — следующим этапом.
+## Stages
 
-## Стадии
+1. [Technical decisions](01_technical_decisions/plan.md)
+2. [Application shell](02_application_shell/plan.md)
+3. [Display mode handling](03_display_mode/plan.md)
+4. [Game lifecycle](04_game_lifecycle/plan.md)
+5. [Steam discovery and UX](05_steam_and_ux/plan.md)
+6. [Packaging and validation](06_packaging_and_validation/plan.md)
 
-1. [Технические решения](01_technical_decisions/plan.md) — зафиксировать API, границы MVP, формат настроек и стратегию portable-сборки.
-2. [Каркас приложения](02_application_shell/plan.md) — структура CMake, главное окно и модель конфигурации.
-3. [Видеорежим](03_display_mode/plan.md) — Win32-обёртка, перечисление разрешений, сохранение/восстановление и проверки ошибок.
-4. [Запуск и жизненный цикл](04_game_lifecycle/plan.md) — запуск EXE, ожидание процесса, аварийное восстановление режима.
-5. [Steam и UX](05_steam_and_ux/plan.md) — Steam URI/AppID, поиск процесса и удобство интерфейса.
-6. [Поставка и проверка](06_packaging_and_validation/plan.md) — portable-сборка, ручные сценарии, журналирование и выпуск.
+## MVP Completion Criteria
 
-## Критерий готовности MVP
-
-Пользователь выбирает игру, монитор и доступное разрешение, нажимает «Запустить», игра стартует в выбранном режиме, а прежний видеорежим восстанавливается во всех штатно обрабатываемых исходах.
+The user selects a game executable and an available primary-display launch mode, starts the game, and sees the original display mode restored for all handled outcomes.

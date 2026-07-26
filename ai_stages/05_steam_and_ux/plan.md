@@ -1,18 +1,18 @@
-# Стадия 5. Steam и UX
+# Stage 5: Steam Discovery and UX
 
-## Результат
+## Outcome
 
-Лаунчер умеет открывать Steam-игры и корректно определяет, когда нужно вернуть видеорежим.
+The launcher can discover installed Steam games to help the user find a game folder, while preserving reliable direct-executable launch tracking.
 
-## План
+## Plan
 
-1. Добавить режим запуска: прямой EXE или Steam AppID.
-2. Запускать Steam через URI или `-applaunch`.
-3. Исследовать получение PID запущенной игры: Steam/Windows process snapshot и имя процесса, заданное пользователем.
-4. Отображать ожидание старта и состояние наблюдения.
-5. Если достоверно сопоставить процесс нельзя — не включать этот путь без явного предупреждения и fallback-правила.
-6. Улучшить UX: недавние игры, кнопка «Восстановить сейчас», понятные сообщения.
+1. Discover Steam installation locations and configured libraries.
+2. Read installed-game metadata from Steam app manifests.
+3. Present discovered games before executable selection.
+4. Use the selected game's install directory as the starting directory for `Browse...`.
+5. Keep executable selection explicit; do not infer a launch executable or launch through Steam.
+6. Add concise tooltips, a `Restore now` action, current-mode details, and clear status messages.
 
-## Проверка
+## Validation
 
-Для настроенной Steam-игры разрешение остаётся выбранным на время реального процесса игры и восстанавливается после него.
+Selecting a Steam game changes the Browse starting folder only. Direct executable launch and display-mode restoration continue to work without Steam.

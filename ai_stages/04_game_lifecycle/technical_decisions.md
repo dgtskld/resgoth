@@ -1,12 +1,12 @@
-﻿# Технические решения — стадия 4
+# Stage 4: Technical Decisions
 
-## Жизненный цикл запуска
+## Launch Lifecycle
 
-- Игра запускается только как прямой EXE через `QProcess` с рабочей директорией, равной каталогу игры.
-- Перед запуском Resgoth сохраняет и применяет выбранный режим первичного дисплея.
-- При `FailedToStart`, завершении процесса и штатном закрытии главного окна Resgoth пытается восстановить режим.
-- Повторный запуск блокируется, пока отслеживаемый процесс не завершится. Повторное восстановление безопасно: после успешного восстановления сохранённый режим очищается.
+- A game is launched only as a direct executable through `QProcess`; its directory is the working directory.
+- Before launch, Resgoth captures the primary display mode and applies the selected launch mode.
+- Resgoth attempts restoration after `FailedToStart`, process completion, and managed main-window close.
+- Launch is disabled while the tracked process is active. After successful restoration, the saved mode is cleared, so another restoration attempt is safe.
 
-## Ограничение
+## Limitation
 
-Если Resgoth будет принудительно завершён через диспетчер задач, отключение питания или сбой ОС, он не сможет выполнить восстановление. Это ограничение первого релиза; действия Win32 записываются в `resgoth.log` для диагностики.
+Resgoth cannot restore the display mode if it is forcibly terminated, the computer loses power, or Windows fails. Display-mode operations are recorded in `resgoth.log` for diagnostics.

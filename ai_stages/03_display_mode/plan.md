@@ -1,18 +1,18 @@
-# Стадия 3. Видеорежим
+# Stage 3: Display Mode Handling
 
-## Результат
+## Outcome
 
-Изолированная и проверенная Win32-обёртка, безопасно меняющая видеорежим выбранного монитора.
+An isolated Win32 service safely changes and restores the Windows primary display mode.
 
-## План
+## Plan
 
-1. Получать текущий `DEVMODE` выбранного устройства через `EnumDisplaySettingsW`.
-2. Перечислять поддерживаемые режимы, убирать дубликаты, показывать разрешение и частоту при необходимости.
-3. Применять режим через `ChangeDisplaySettingsExW` и разбирать все коды ошибок.
-4. Хранить исходный полный режим только в памяти текущего запуска.
-5. Восстанавливать режим отдельным надёжным методом, независимо от состояния UI.
-6. Добавить журналирование операций и результатов Win32 API.
+1. Read the primary display's current full `DEVMODE` with `EnumDisplaySettingsW`.
+2. Enumerate candidate modes, remove duplicates, and retain only modes accepted by `CDS_TEST`.
+3. Show common resolutions with refresh rate and aspect ratio.
+4. Apply the selected mode with `ChangeDisplaySettingsExW` and report errors.
+5. Keep the original full mode in memory for the current run.
+6. Restore the mode independently of UI state and log Win32 operations.
 
-## Проверка
+## Validation
 
-На тестовом мониторе режим меняется на выбранный и точно восстанавливается; неподдерживаемый режим не применяется.
+On a test display, a selected mode applies and restores exactly; unsupported modes are not offered.

@@ -1,17 +1,17 @@
-# Стадия 2. Каркас приложения
+# Stage 2: Application Shell
 
-## Результат
+## Outcome
 
-Рабочее небольшое окно с выбором игры, монитора и разрешения; настройки сохраняются и восстанавливаются между запусками.
+A small working window lets the user select a game executable and launch display mode; settings persist between launches.
 
-## План
+## Plan
 
-1. Разделить код на UI, конфигурацию, видеорежим и запуск процесса.
-2. Собрать форму: путь к EXE, кнопка выбора файла, монитор, разрешение, статус и «Запустить».
-3. Добавить чтение/запись INI рядом с приложением.
-4. Заполнять список разрешений после выбора монитора.
-5. Валидировать ввод и заблокировать запуск при некорректной конфигурации.
+1. Separate UI, configuration, display-mode, Steam-discovery, and process-lifecycle code.
+2. Build the form with Steam game discovery, executable selection, primary-display information, current mode, launch mode, status, and action buttons.
+3. Read and write the portable INI configuration.
+4. Load the primary display and its available modes.
+5. Validate input and disable launch until the configuration is valid.
 
-## Проверка
+## Validation
 
-Форма работает без запуска игры, а её настройки переживают перезапуск приложения.
+The form works without launching a game, and its saved settings survive an application restart.

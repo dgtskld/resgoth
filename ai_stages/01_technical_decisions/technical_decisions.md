@@ -1,33 +1,22 @@
-# Технические решения — стадия 1
+# Stage 1: Technical Decisions
 
-## Границы MVP
+## MVP Scope
 
-- Целевая платформа — Windows 10 и Windows 11.
-- Resgoth использует только первичный дисплей Windows. Выбор или принудительный запуск игры на другом мониторе не поддерживается.
-- Интерфейс и управление процессом реализуются на C++20 и Qt 6 Widgets.
-- Перечисление и временное переключение видеорежимов реализуются через Win32 API.
+- Target platform: Windows 10 and Windows 11.
+- Resgoth operates on the Windows primary display only. Selecting another display or forcing a game window onto it is out of scope.
+- The application uses C++20 and Qt 6 Widgets.
+- Win32 APIs enumerate and temporarily change display modes.
 
-## Контракты модулей
+## Module Contracts
 
-`DisplayModeService` — единственная точка работы с видеорежимами. Он читает текущий режим монитора, перечисляет допустимые режимы, применяет выбранный и восстанавливает сохранённый. Все операции возвращают диагностируемую ошибку.
+`DisplayModeService` is the only display-mode integration point. It reads the primary display's current mode, enumerates testable modes, applies a selected mode, and restores the saved full `DEVMODE`.
 
-`GameLauncher` запускает только указанный пользователем EXE, проверяет ошибку старта и наблюдает за созданным процессом до его завершения. События запуска, ошибки и завершения передаются уровню приложения, который инициирует восстановление видеорежима.
+`GameLauncher` starts only the executable explicitly selected by the user. It reports launch errors and observes the child process until it exits.
 
-## Настройки
+## Configuration
 
-По умолчанию настройки сохраняются в `resgoth.ini` рядом с `resgoth.exe`: это переносимый режим. В интерфейсе пользователь сможет выбрать другое хранилище:
+Settings are stored in `resgoth.ini` beside `resgoth.exe`. The file records the selected executable and launch mode. Diagnostics are written to `resgoth.log` in the same directory.
 
-- реестр текущего пользователя через `QSettings`;
-- INI-файл в `%LocalAppData%`.
+## Distribution and Licensing
 
-Если каталог с EXE недоступен для записи, приложение должно объяснить проблему и предложить сменить место хранения, а не молча менять его.
-
-## Поставка и лицензирование
-
-Релиз — один статически слинкованный `resgoth.exe`, без установщика и папки с Qt DLL. Для этого Qt собирается статически вместе с требуемыми платформенными плагинами.
-
-Исходный код Resgoth лицензируется под MIT; это не отменяет LGPL-условия Qt. Перед первым публичным релизом нужно добавить лицензионные уведомления, сведения о точной версии/патчах Qt, контролируемый способ получить исходники Qt и возможность перелинковки с изменённым Qt. Публичный репозиторий должен содержать воспроизводимую инструкцию сборки. При сомнениях перед релизом требуется юридическая проверка.
-
-## Ограничения
-
-Статическая сборка увеличивает размер EXE и требует пересборки для обновления Qt или плагинов. Системные компоненты Windows не входят в поставляемый файл. Текущая Debug-конфигурация использует динамический Qt 6.11.1 MinGW и служит только для разработки; статический Qt будет подготовлен на стадии поставки.
+Releases are portable ZIP archives containing `resgoth.exe`, the required Qt DLLs, and the Qt Windows platform plugin. No installer or static Qt build is used. Resgoth source is MIT-licensed; Qt remains subject to its own licenses. Releases include the applicable notices and must keep the Qt DLLs replaceable by the user.

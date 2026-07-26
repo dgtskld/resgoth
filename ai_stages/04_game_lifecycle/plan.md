@@ -1,18 +1,18 @@
-# Стадия 4. Запуск и жизненный цикл
+# Stage 4: Game Lifecycle
 
-## Результат
+## Outcome
 
-Прямо запускаемая игра работает в выбранном режиме, а исходный восстанавливается после её завершения или любой обработанной ошибки.
+A directly launched game runs with the selected mode, and the original mode is restored after the game or any handled error.
 
-## План
+## Plan
 
-1. Запускать EXE через `QProcess` с корректной рабочей директорией игры.
-2. Менять режим только после успешной валидации конфигурации и до старта процесса.
-3. Восстанавливать режим при ошибке запуска, `finished`, `errorOccurred` и закрытии главного окна.
-4. Защититься от повторного нажатия запуска и повторного восстановления.
-5. Показать пользователю текущий статус и причины ошибок.
-6. Определить поведение при принудительном завершении самого лаунчера: best effort и документированное ограничение.
+1. Start the selected executable through `QProcess` with the game directory as its working directory.
+2. Validate configuration and apply the display mode before starting the process.
+3. Restore the mode after launch failure, process completion, or a managed main-window close.
+4. Prevent duplicate launches and make repeated restoration safe.
+5. Show clear status and error messages.
+6. Document that forced termination, power loss, and operating-system failure cannot trigger restoration.
 
-## Проверка
+## Validation
 
-Проверены успешный запуск, отсутствующий EXE, мгновенное завершение, ошибка запуска и закрытие лаунчера во время игры.
+Check successful launch, a missing executable, immediate exit, launch failure, and closing the launcher while a game is running.

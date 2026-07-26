@@ -1,17 +1,18 @@
-# Стадия 6. Поставка и проверка
+# Stage 6: Packaging and Validation
 
-## Результат
+## Outcome
 
-Готовая portable-сборка и понятный набор проверок перед выпуском.
+A portable release package and a clear pre-release validation checklist.
 
-## План
+## Plan
 
-1. Собрать Release и проверить зависимости Qt/Visual C++ Runtime.
-2. Реализовать принятый вариант portable-поставки: статический единый EXE либо упакованный единый EXE с извлечением зависимостей.
-3. Оставить рядом только необязательный INI-файл настроек и журнал диагностики.
-4. Протестировать на чистой Windows-машине и на нескольких мониторах/разрешениях.
-5. Подготовить README с запуском, ограничениями, восстановлением экрана и известными проблемами.
+1. Build the Release configuration and inspect its Qt and compiler-runtime dependencies.
+2. Create a portable ZIP containing `resgoth.exe`, required Qt DLLs, and the Windows platform plugin; do not create an installer.
+3. Include third-party notices and the relevant license text.
+4. Test the ZIP on a Windows machine without a Qt development installation.
+5. Manually test display-mode changes and restoration on supported display configurations.
+6. Keep the README current with usage, recovery behavior, limitations, and known issues.
 
-## Проверка
+## Validation
 
-Архив запускается без установки Qt, а ключевые сценарии смены и восстановления разрешения пройдены вручную.
+The extracted ZIP starts without a local Qt installation, and the key mode-change and restoration scenarios have been manually tested.
