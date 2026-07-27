@@ -41,11 +41,15 @@ jobs:
           $qtRoot = $env:QT_ROOT_DIR
           $releaseName = "resgoth-$env:GITHUB_REF_NAME-windows-x64"
           $packageDirectory = "dist\$releaseName"
+          $platformsDirectory = "$packageDirectory\platforms"
           $zipPath = "dist\$releaseName.zip"
 
           New-Item -ItemType Directory -Path $packageDirectory -Force | Out-Null
+          New-Item -ItemType Directory -Path $platformsDirectory -Force | Out-Null
           Copy-Item "build\release\Release\resgoth.exe" -Destination $packageDirectory
-          & "$qtRoot\bin\windeployqt.exe" --release --compiler-runtime --dir $packageDirectory "$packageDirectory\resgoth.exe"
+          & "$qtRoot\bin\windeployqt.exe" --release --compiler-runtime --no-libraries --no-plugins --no-translations --no-system-d3d-compiler --no-opengl-sw --dir $packageDirectory "$packageDirectory\resgoth.exe"
+          Copy-Item "$qtRoot\bin\Qt6Core.dll", "$qtRoot\bin\Qt6Gui.dll", "$qtRoot\bin\Qt6Widgets.dll" -Destination $packageDirectory
+          Copy-Item "$qtRoot\plugins\platforms\qwindows.dll" -Destination $platformsDirectory
           Copy-Item "README.md", "THIRD_PARTY_NOTICES.md" -Destination $packageDirectory
           Copy-Item "LICENSES" -Destination $packageDirectory -Recurse
 

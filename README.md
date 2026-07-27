@@ -68,4 +68,4 @@ cmake -S . -B build\release -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_P
 cmake --build build\release --parallel
 ```
 
-The Release output is dynamically linked. Keep `resgoth.exe`, the Qt DLLs, and the `plugins` directory together when copying or packaging the application.
+The Release output is dynamically linked. Keep `resgoth.exe`, the Qt DLLs, and the `platforms` directory together when copying or packaging the application.
