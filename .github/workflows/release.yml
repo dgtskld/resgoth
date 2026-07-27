@@ -1,0 +1,105 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  build-release:
+    runs-on: windows-2022
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4
+        with:
+          version: "6.11.1"
+          arch: "win64_msvc2022_64"
+
+      - name: Configure and build
+        shell: pwsh
+        run: |
+          $qtRoot = $env:QT_ROOT_DIR
+          cmake -S . -B build\release -G "Visual Studio 17 2022" -A x64 "-DCMAKE_PREFIX_PATH=$qtRoot"
+          cmake --build build\release --config Release --parallel
+
+      - name: Package release
+        shell: pwsh
+        run: |
+          $qtRoot = $env:QT_ROOT_DIR
+          $releaseName = "resgoth-$env:GITHUB_REF_NAME-windows-x64"
+          $packageDirectory = "dist\$releaseName"
+          $zipPath = "dist\$releaseName.zip"
+
+          New-Item -ItemType Directory -Path $packageDirectory -Force | Out-Null
+          Copy-Item "build\release\Release\resgoth.exe" -Destination $packageDirectory
+          & "$qtRoot\bin\windeployqt.exe" --release --compiler-runtime --dir $packageDirectory "$packageDirectory\resgoth.exe"
+          Copy-Item "README.md", "THIRD_PARTY_NOTICES.md" -Destination $packageDirectory
+          Copy-Item "LICENSES" -Destination $packageDirectory -Recurse
+
+          Compress-Archive -Path "$packageDirectory\*" -DestinationPath $zipPath -Force
+          $hash = (Get-FileHash $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          [System.IO.File]::WriteAllText("dist\SHA256SUMS.txt", "$hash  $releaseName.zip`n", [System.Text.UTF8Encoding]::new($false))
+
+      - name: Upload release files
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: resgoth-${{ github.ref_name }}-windows-x64
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
+
+  attest-release:
+    needs: build-release
+    runs-on: windows-2022
+    permissions:
+      contents: read
+      attestations: write
+      id-token: write
+
+    steps:
+      - name: Download release files
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: resgoth-${{ github.ref_name }}-windows-x64
+          path: dist
+
+      - name: Generate build provenance
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4
+        with:
+          subject-path: dist/*.zip
+
+  publish-release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs:
+      - build-release
+      - attest-release
+    runs-on: windows-2022
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download release files
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: resgoth-${{ github.ref_name }}-windows-x64
+          path: dist
+
+      - name: Create GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$env:GITHUB_REF_NAME" dist\*.zip dist\SHA256SUMS.txt --generate-notes --title "Resgoth $env:GITHUB_REF_NAME"

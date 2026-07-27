@@ -38,7 +38,7 @@ If Resgoth or Windows closes unexpectedly while a game is running, the display m
 
 Requirements:
 
-- CMake 4.3 or later
+- CMake 3.21 or later
 - Ninja
 - Qt 6.11.1 for MinGW 64-bit
 - A matching MinGW-w64 compiler available in `PATH`

@@ -1,11 +1,10 @@
-﻿cmake_minimum_required(VERSION 4.3)
+cmake_minimum_required(VERSION 3.21)
 project(resgoth)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
-
 
 find_package(Qt6 COMPONENTS
         Core
@@ -54,5 +53,5 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 COMMAND ${CMAKE_COMMAND} -E copy
                 "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endforeach (QT_LIB)
+    endforeach ()
 endif ()

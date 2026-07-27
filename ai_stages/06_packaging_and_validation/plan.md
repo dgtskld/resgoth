@@ -12,6 +12,7 @@ A portable release package and a clear pre-release validation checklist.
 4. Test the ZIP on a Windows machine without a Qt development installation.
 5. Manually test display-mode changes and restoration on supported display configurations.
 6. Keep the README current with usage, recovery behavior, limitations, and known issues.
+7. Build tagged releases in GitHub Actions, publish a ZIP with `SHA256SUMS.txt`, and generate a GitHub provenance attestation.
 
 ## Validation
 
