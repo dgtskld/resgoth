@@ -24,6 +24,8 @@ Settings are stored in `resgoth.ini` and diagnostics in `resgoth.log`, both next
 
 Resgoth saves the current primary-display mode, switches Windows to the selected launch mode, starts the game, and waits for the game process to finish. When you exit the game, Resgoth restores the original display mode.
 
+Expect a short pause while Windows applies the launch mode before the game appears, and another short pause after the game exits while the original mode is restored.
+
 For Steam launches, Resgoth asks Steam to start the selected game and waits for the final game EXE chosen by you to appear. If a launcher starts another executable, choose that final executable rather than the launcher. This lets Steam provide its usual game context while Resgoth still knows when to restore the display mode.
 
 Some games display a resolution from their own configuration or internal renderer rather than the active Windows display mode. Treat that value as informational: Resgoth applies the selected launch mode before starting the game. The selected mode remains active unless the game changes it itself.
