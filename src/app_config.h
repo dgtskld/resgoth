@@ -5,6 +5,7 @@
 struct AppConfig {
     QString gamePath;
     QString steamAppId;
+    QString launchMethod = QStringLiteral("steam");
     QString monitorDeviceName;
     int width = 0;
     int height = 0;

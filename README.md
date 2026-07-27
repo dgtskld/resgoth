@@ -5,19 +5,26 @@ Resgoth is a Windows launcher that temporarily changes the primary display mode 
 ## Features
 
 - Windows 10 and Windows 11 support.
-- Direct launch of a selected game EXE with its directory as the working directory.
+- Steam launch for discovered games, with direct EXE launch available as a manual alternative.
 - Automatic selection of the primary Windows display.
 - Safe display-mode validation before applying a mode and automatic restoration after managed exits.
-- Detection of installed Steam games to open the correct installation folder in the EXE picker. Steam games still launch through the explicitly selected EXE.
+- Detection of installed Steam games and tracking of the selected game process after Steam starts it.
 
 ## Use
 
-1. Optionally select a Steam game; `Browse…` opens its installation folder.
-2. Select the exact game EXE.
-3. Choose a launch mode and select `Launch`.
-4. Resgoth restores the original display mode when the game exits. `Restore now` is available after a mode has been applied.
+1. Choose `Steam` or `Manual EXE` as the launch method. Steam is selected by default.
+2. For Steam, choose an installed game and then select its final game EXE. Resgoth does not start this EXE directly; it uses it to identify the process started by Steam.
+3. For Manual EXE, choose the executable to start directly.
+4. Choose a launch mode and select `Launch`.
+5. Resgoth restores the original display mode when the game exits. `Restore now` is available after a mode has been applied.
 
 Settings are stored in `resgoth.ini` and diagnostics in `resgoth.log`, both next to the executable.
+
+## How It Works
+
+Resgoth saves the current primary-display mode, switches Windows to the selected launch mode, starts the game, and waits for the game process to finish. When you exit the game, Resgoth restores the original display mode.
+
+For Steam launches, Resgoth asks Steam to start the selected game and waits for the final game EXE chosen by you to appear. If a launcher starts another executable, choose that final executable rather than the launcher. This lets Steam provide its usual game context while Resgoth still knows when to restore the display mode.
 
 Some games display a resolution from their own configuration or internal renderer rather than the active Windows display mode. Treat that value as informational: Resgoth applies the selected launch mode before starting the game. The selected mode remains active unless the game changes it itself.
 

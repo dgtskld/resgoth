@@ -18,6 +18,8 @@ constexpr auto modeWidthRole = Qt::UserRole;
 constexpr auto modeHeightRole = Qt::UserRole + 1;
 constexpr auto modeRefreshRateRole = Qt::UserRole + 2;
 constexpr auto steamAppIdRole = Qt::UserRole + 3;
+const QString steamLaunchMethod = QStringLiteral("steam");
+const QString manualLaunchMethod = QStringLiteral("manual");
 
 bool isCommonResolution(const DisplayMode &mode) {
     static const QSet<QPair<int, int>> commonResolutions{
@@ -51,24 +53,32 @@ void MainWindow::setupUi() {
     auto *layout = new QVBoxLayout(centralWidget);
     auto *form = new QFormLayout();
 
+    launchMethodCombo = new QComboBox(centralWidget);
+    launchMethodCombo->addItem(QStringLiteral("Steam"), steamLaunchMethod);
+    launchMethodCombo->addItem(QStringLiteral("Manual EXE"), manualLaunchMethod);
+    launchMethodCombo->setToolTip(QStringLiteral("Choose whether to launch a discovered Steam game or start an EXE directly."));
+    form->addRow(QStringLiteral("Launch via:"), launchMethodCombo);
+
     steamGameCombo = new QComboBox(centralWidget);
-    steamGameCombo->setToolTip(QStringLiteral("Choose an installed Steam game to open its folder in Browse. This does not choose an EXE."));
+    steamGameCombo->setToolTip(QStringLiteral("Choose the Steam game to launch. Also select its final game EXE below: Resgoth uses that EXE only to detect when the game exits and restore the display mode. If Steam starts a launcher first, choose the EXE it starts afterward."));
     auto *resetSteamButton = new QPushButton(QStringLiteral("Reset"), centralWidget);
     resetSteamButton->setToolTip(QStringLiteral("Clear the Steam game selection and selected EXE without rescanning libraries."));
-    auto *steamGamesLayout = new QHBoxLayout();
+    steamGameField = new QWidget(centralWidget);
+    auto *steamGamesLayout = new QHBoxLayout(steamGameField);
+    steamGamesLayout->setContentsMargins(0, 0, 0, 0);
     steamGamesLayout->addWidget(steamGameCombo);
     steamGamesLayout->addWidget(resetSteamButton);
-    form->addRow(QStringLiteral("Steam game:"), steamGamesLayout);
+    steamGameLabel = new QLabel(QStringLiteral("Steam game:"), centralWidget);
+    form->addRow(steamGameLabel, steamGameField);
 
     gamePathEdit = new QLineEdit(centralWidget);
     gamePathEdit->setPlaceholderText(QStringLiteral("Path to the game EXE"));
-    gamePathEdit->setToolTip(QStringLiteral("Select the exact executable to launch. Resgoth starts this EXE directly."));
     auto *browseButton = new QPushButton(QStringLiteral("Browse…"), centralWidget);
-    browseButton->setToolTip(QStringLiteral("Choose the game executable. A selected Steam game opens its install folder."));
     auto *gamePathLayout = new QHBoxLayout();
     gamePathLayout->addWidget(gamePathEdit);
     gamePathLayout->addWidget(browseButton);
-    form->addRow(QStringLiteral("Game EXE:"), gamePathLayout);
+    gamePathLabel = new QLabel(centralWidget);
+    form->addRow(gamePathLabel, gamePathLayout);
 
     displayLabel = new QLabel(centralWidget);
     displayLabel->setWordWrap(true);
@@ -99,9 +109,9 @@ void MainWindow::setupUi() {
     setCentralWidget(centralWidget);
 
     connect(browseButton, &QPushButton::clicked, this, [this] {
-        QString initialDirectory = steamGameCombo->currentData().toString();
-        if (initialDirectory.isEmpty()) {
-            initialDirectory = gamePathEdit->text();
+        QString initialDirectory = QStringLiteral("C:/");
+        if (launchMethodCombo->currentData().toString() == steamLaunchMethod) {
+            initialDirectory = steamGameCombo->currentData().toString();
         }
         const QString path = QFileDialog::getOpenFileName(this, QStringLiteral("Select Game"), initialDirectory,
                                                           QStringLiteral("Programs (*.exe);;All Files (*)"));
@@ -110,6 +120,10 @@ void MainWindow::setupUi() {
         }
     });
     connect(gamePathEdit, &QLineEdit::textChanged, this, [this] { updateValidation(); });
+    connect(launchMethodCombo, qOverload<int>(&QComboBox::currentIndexChanged), this, [this] {
+        updateLaunchMethodUi();
+        updateValidation();
+    });
     connect(resetSteamButton, &QPushButton::clicked, this, [this] {
         steamGameCombo->setCurrentIndex(0);
         gamePathEdit->clear();
@@ -131,11 +145,15 @@ void MainWindow::setupUi() {
         statusLabel->setText(QStringLiteral("Could not start the game: %1 Original display mode restored.").arg(message));
         updateValidation();
     });
+
+    updateLaunchMethodUi();
 }
 
 void MainWindow::loadConfig() {
     const AppConfig config = configStore.read();
     gamePathEdit->setText(config.gamePath);
+    const int launchMethodIndex = launchMethodCombo->findData(config.launchMethod);
+    launchMethodCombo->setCurrentIndex(launchMethodIndex >= 0 ? launchMethodIndex : 0);
     loadSteamGames();
     for (int index = 1; index < steamGameCombo->count(); ++index) {
         if (steamGameCombo->itemData(index, steamAppIdRole).toString() == config.steamAppId) {
@@ -154,6 +172,16 @@ void MainWindow::loadConfig() {
         }
     }
     updateValidation();
+}
+
+void MainWindow::updateLaunchMethodUi() {
+    const bool usesSteam = launchMethodCombo->currentData().toString() == steamLaunchMethod;
+    steamGameLabel->setVisible(usesSteam);
+    steamGameField->setVisible(usesSteam);
+    gamePathLabel->setText(usesSteam ? QStringLiteral("Game process EXE:") : QStringLiteral("Game EXE:"));
+    gamePathEdit->setToolTip(usesSteam
+                                 ? QStringLiteral("Select the final game EXE. Steam launches the game; Resgoth uses this path to detect when it exits. If a launcher starts another EXE, select that final EXE.")
+                                 : QStringLiteral("Select the exact executable to launch directly."));
 }
 
 void MainWindow::loadSteamGames() {
@@ -212,12 +240,17 @@ void MainWindow::updateValidation() {
     const QFileInfo gameFile(gamePathEdit->text());
     const bool gameExists = gameFile.exists() && gameFile.isFile();
     const bool displaySelected = !primaryDeviceName.isEmpty() && modeCombo->currentIndex() >= 0;
-    const bool valid = displaySelected && gameExists;
+    const bool usesSteam = launchMethodCombo->currentData().toString() == steamLaunchMethod;
+    const bool steamGameSelected = !steamGameCombo->currentData(steamAppIdRole).toString().isEmpty();
+    const bool valid = displaySelected && gameExists && (!usesSteam || steamGameSelected);
 
     launchButton->setEnabled(valid && !gameLauncher.isRunning());
     applyButton->setEnabled(valid && !gameLauncher.isRunning());
     if (!gameExists) {
-        statusLabel->setText(QStringLiteral("Select an existing game EXE file."));
+        statusLabel->setText(usesSteam ? QStringLiteral("Select the final game EXE that Steam starts.")
+                                       : QStringLiteral("Select an existing game EXE file."));
+    } else if (usesSteam && !steamGameSelected) {
+        statusLabel->setText(QStringLiteral("Select a Steam game to launch."));
     } else if (!displaySelected) {
         statusLabel->setText(QStringLiteral("Could not get modes for the primary display."));
     } else {
@@ -257,7 +290,10 @@ void MainWindow::launchGame() {
     }
 
     QString launchError;
-    if (!gameLauncher.launch(config.gamePath, &launchError)) {
+    const bool usesSteam = config.launchMethod == steamLaunchMethod;
+    const bool launched = usesSteam ? gameLauncher.launchSteam(config.steamAppId, config.gamePath, &launchError)
+                                    : gameLauncher.launchDirect(config.gamePath, &launchError);
+    if (!launched) {
         restoreDisplayMode();
         statusLabel->setText(launchError + QStringLiteral(" Original display mode restored."));
         return;
@@ -266,7 +302,8 @@ void MainWindow::launchGame() {
     launchButton->setEnabled(false);
     applyButton->setEnabled(false);
     restoreButton->setEnabled(true);
-    statusLabel->setText(QStringLiteral("Applying launch mode and starting the game…"));
+    statusLabel->setText(usesSteam ? QStringLiteral("Launch mode applied. Starting Steam and waiting for the game process…")
+                                   : QStringLiteral("Applying launch mode and starting the game…"));
 }
 
 void MainWindow::restoreDisplayMode() {
@@ -286,6 +323,7 @@ AppConfig MainWindow::currentConfig() const {
     AppConfig config;
     config.gamePath = gamePathEdit->text();
     config.steamAppId = steamGameCombo->currentData(steamAppIdRole).toString();
+    config.launchMethod = launchMethodCombo->currentData().toString();
     config.monitorDeviceName = primaryDeviceName;
     const int modeIndex = modeCombo->currentIndex();
     if (modeIndex >= 0) {

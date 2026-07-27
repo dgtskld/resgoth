@@ -2,7 +2,7 @@
 
 ## Steam as a Discovery Source
 
-- Resgoth launches games only through a user-selected executable. There is no Steam App ID launch mode.
+- Stage 5 uses the selected executable only to identify the game and open its folder; it does not yet launch through a Steam App ID. Steam launch and process tracking are planned in Stage 7.
 - Steam installation locations are read from the Windows registry and standard installation locations.
 - Library locations are read from `steamapps/libraryfolders.vdf`.
 - Each library's `steamapps/appmanifest_*.acf` files provide the game name, App ID, and install directory.

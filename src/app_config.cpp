@@ -13,6 +13,7 @@ AppConfig AppConfigStore::read() const {
     AppConfig config;
     config.gamePath = settings.value("game/path").toString();
     config.steamAppId = settings.value("steam/appId").toString();
+    config.launchMethod = settings.value("launch/method", QStringLiteral("steam")).toString();
     config.monitorDeviceName = settings.value("display/monitor").toString();
     config.width = settings.value("display/width", 0).toInt();
     config.height = settings.value("display/height", 0).toInt();
@@ -24,6 +25,7 @@ void AppConfigStore::write(const AppConfig &config) const {
     QSettings settings(filePath(), QSettings::IniFormat);
     settings.setValue("game/path", config.gamePath);
     settings.setValue("steam/appId", config.steamAppId);
+    settings.setValue("launch/method", config.launchMethod);
     settings.setValue("display/monitor", config.monitorDeviceName);
     settings.setValue("display/width", config.width);
     settings.setValue("display/height", config.height);

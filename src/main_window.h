@@ -25,6 +25,7 @@ private:
     void loadPrimaryDisplay();
     void updateCurrentMode();
     void reloadModes();
+    void updateLaunchMethodUi();
     void saveConfig() const;
     void updateValidation();
     void loadSteamGames();
@@ -38,7 +39,11 @@ private:
     GameLauncher gameLauncher;
     SteamLibraryService steamLibraries;
     QLineEdit *gamePathEdit = nullptr;
+    QComboBox *launchMethodCombo = nullptr;
     QComboBox *steamGameCombo = nullptr;
+    QLabel *steamGameLabel = nullptr;
+    QWidget *steamGameField = nullptr;
+    QLabel *gamePathLabel = nullptr;
     QLabel *displayLabel = nullptr;
     QLabel *currentModeLabel = nullptr;
     QComboBox *modeCombo = nullptr;

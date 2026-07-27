@@ -8,7 +8,7 @@ Build a portable Windows launcher that starts a game executable at a selected pr
 
 Resgoth uses C++20 and Qt 6 Widgets for the UI, configuration, file selection, and process lifecycle. Win32 APIs (`EnumDisplaySettingsW` and `ChangeDisplaySettingsExW`) enumerate and change display modes.
 
-The MVP changes the Windows primary display only. It does not choose a GPU, move a game window to another display, launch through Steam, or change the mode when focus changes. A game is always launched as a directly selected executable, allowing Resgoth to track it as a child process.
+The MVP changes the Windows primary display only. It does not choose a GPU, move a game window to another display, or change the mode when focus changes. Direct executable launch provides child-process tracking; Stage 7 adds Steam launch with a separate Windows process monitor.
 
 ## Release Principles
 
@@ -25,6 +25,7 @@ The MVP changes the Windows primary display only. It does not choose a GPU, move
 4. [Game lifecycle](04_game_lifecycle/plan.md)
 5. [Steam discovery and UX](05_steam_and_ux/plan.md)
 6. [Packaging and validation](06_packaging_and_validation/plan.md)
+7. [Steam launch and process tracking](07_steam_launch_tracking/plan.md)
 
 ## MVP Completion Criteria
 
