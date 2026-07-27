@@ -17,6 +17,7 @@ namespace {
 constexpr auto modeWidthRole = Qt::UserRole;
 constexpr auto modeHeightRole = Qt::UserRole + 1;
 constexpr auto modeRefreshRateRole = Qt::UserRole + 2;
+constexpr auto steamAppIdRole = Qt::UserRole + 3;
 
 bool isCommonResolution(const DisplayMode &mode) {
     static const QSet<QPair<int, int>> commonResolutions{
@@ -53,7 +54,7 @@ void MainWindow::setupUi() {
     steamGameCombo = new QComboBox(centralWidget);
     steamGameCombo->setToolTip(QStringLiteral("Choose an installed Steam game to open its folder in Browse. This does not choose an EXE."));
     auto *resetSteamButton = new QPushButton(QStringLiteral("Reset"), centralWidget);
-    resetSteamButton->setToolTip(QStringLiteral("Clear the Steam game selection without rescanning libraries."));
+    resetSteamButton->setToolTip(QStringLiteral("Clear the Steam game selection and selected EXE without rescanning libraries."));
     auto *steamGamesLayout = new QHBoxLayout();
     steamGamesLayout->addWidget(steamGameCombo);
     steamGamesLayout->addWidget(resetSteamButton);
@@ -85,10 +86,13 @@ void MainWindow::setupUi() {
     layout->addWidget(statusLabel);
 
     launchButton = new QPushButton(QStringLiteral("Launch"), centralWidget);
+    applyButton = new QPushButton(QStringLiteral("Apply now"), centralWidget);
+    applyButton->setToolTip(QStringLiteral("Apply the selected display mode without starting the game."));
     restoreButton = new QPushButton(QStringLiteral("Restore now"), centralWidget);
     restoreButton->setEnabled(false);
     restoreButton->setToolTip(QStringLiteral("Available after a launch mode has been applied."));
     auto *buttonsLayout = new QHBoxLayout();
+    buttonsLayout->addWidget(applyButton);
     buttonsLayout->addWidget(restoreButton);
     buttonsLayout->addWidget(launchButton, 0, Qt::AlignRight);
     layout->addLayout(buttonsLayout);
@@ -106,8 +110,12 @@ void MainWindow::setupUi() {
         }
     });
     connect(gamePathEdit, &QLineEdit::textChanged, this, [this] { updateValidation(); });
-    connect(resetSteamButton, &QPushButton::clicked, this, [this] { steamGameCombo->setCurrentIndex(0); });
+    connect(resetSteamButton, &QPushButton::clicked, this, [this] {
+        steamGameCombo->setCurrentIndex(0);
+        gamePathEdit->clear();
+    });
     connect(modeCombo, qOverload<int>(&QComboBox::currentIndexChanged), this, [this] { updateValidation(); });
+    connect(applyButton, &QPushButton::clicked, this, &MainWindow::applyDisplayMode);
     connect(launchButton, &QPushButton::clicked, this, &MainWindow::launchGame);
     connect(restoreButton, &QPushButton::clicked, this, &MainWindow::restoreDisplayMode);
     connect(&gameLauncher, &GameLauncher::gameStarted, this, [this] {
@@ -129,6 +137,12 @@ void MainWindow::loadConfig() {
     const AppConfig config = configStore.read();
     gamePathEdit->setText(config.gamePath);
     loadSteamGames();
+    for (int index = 1; index < steamGameCombo->count(); ++index) {
+        if (steamGameCombo->itemData(index, steamAppIdRole).toString() == config.steamAppId) {
+            steamGameCombo->setCurrentIndex(index);
+            break;
+        }
+    }
     loadPrimaryDisplay();
     reloadModes();
     for (int index = 0; index < modeCombo->count(); ++index) {
@@ -147,6 +161,7 @@ void MainWindow::loadSteamGames() {
     steamGameCombo->addItem(QStringLiteral("Manual selection"));
     for (const SteamGameInfo &game : steamLibraries.installedGames()) {
         steamGameCombo->addItem(QStringLiteral("%1 (%2)").arg(game.name, game.appId), game.installDirectory);
+        steamGameCombo->setItemData(steamGameCombo->count() - 1, game.appId, steamAppIdRole);
     }
 }
 
@@ -200,6 +215,7 @@ void MainWindow::updateValidation() {
     const bool valid = displaySelected && gameExists;
 
     launchButton->setEnabled(valid && !gameLauncher.isRunning());
+    applyButton->setEnabled(valid && !gameLauncher.isRunning());
     if (!gameExists) {
         statusLabel->setText(QStringLiteral("Select an existing game EXE file."));
     } else if (!displaySelected) {
@@ -207,6 +223,24 @@ void MainWindow::updateValidation() {
     } else {
         statusLabel->setText(QStringLiteral("Configuration is valid. Settings will be saved next to the application."));
     }
+}
+
+void MainWindow::applyDisplayMode() {
+    if (gameLauncher.isRunning()) {
+        return;
+    }
+
+    const AppConfig config = currentConfig();
+    const DisplayMode requestedMode{config.width, config.height, config.refreshRate};
+    const DisplayOperationResult modeResult = displayModes.applyMode(config.monitorDeviceName, requestedMode);
+    if (!modeResult.succeeded) {
+        statusLabel->setText(QStringLiteral("Could not apply the launch mode: %1").arg(modeResult.error));
+        return;
+    }
+
+    updateCurrentMode();
+    restoreButton->setEnabled(true);
+    statusLabel->setText(QStringLiteral("Launch mode applied. Select Restore now to return to the original mode."));
 }
 
 void MainWindow::launchGame() {
@@ -230,6 +264,7 @@ void MainWindow::launchGame() {
     }
 
     launchButton->setEnabled(false);
+    applyButton->setEnabled(false);
     restoreButton->setEnabled(true);
     statusLabel->setText(QStringLiteral("Applying launch mode and starting the game…"));
 }
@@ -250,6 +285,7 @@ void MainWindow::restoreDisplayMode() {
 AppConfig MainWindow::currentConfig() const {
     AppConfig config;
     config.gamePath = gamePathEdit->text();
+    config.steamAppId = steamGameCombo->currentData(steamAppIdRole).toString();
     config.monitorDeviceName = primaryDeviceName;
     const int modeIndex = modeCombo->currentIndex();
     if (modeIndex >= 0) {

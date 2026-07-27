@@ -28,6 +28,7 @@ private:
     void saveConfig() const;
     void updateValidation();
     void loadSteamGames();
+    void applyDisplayMode();
     void launchGame();
     void restoreDisplayMode();
     [[nodiscard]] AppConfig currentConfig() const;
@@ -42,6 +43,7 @@ private:
     QLabel *currentModeLabel = nullptr;
     QComboBox *modeCombo = nullptr;
     QLabel *statusLabel = nullptr;
+    QPushButton *applyButton = nullptr;
     QPushButton *launchButton = nullptr;
     QPushButton *restoreButton = nullptr;
     QString primaryDeviceName;

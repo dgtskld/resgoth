@@ -11,7 +11,7 @@ The launcher can discover installed Steam games to help the user find a game fol
 3. Present discovered games before executable selection.
 4. Use the selected game's install directory as the starting directory for `Browse...`.
 5. Keep executable selection explicit; do not infer a launch executable or launch through Steam.
-6. Add concise tooltips, a `Restore now` action, current-mode details, and clear status messages.
+6. Add concise tooltips, `Apply now` and `Restore now` actions, current-mode details, and clear status messages.
 
 ## Validation
 

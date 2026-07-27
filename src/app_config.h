@@ -4,6 +4,7 @@
 
 struct AppConfig {
     QString gamePath;
+    QString steamAppId;
     QString monitorDeviceName;
     int width = 0;
     int height = 0;

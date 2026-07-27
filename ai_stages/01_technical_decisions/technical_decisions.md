@@ -15,7 +15,7 @@
 
 ## Configuration
 
-Settings are stored in `resgoth.ini` beside `resgoth.exe`. The file records the selected executable and launch mode. Diagnostics are written to `resgoth.log` in the same directory.
+Settings are stored in `resgoth.ini` beside `resgoth.exe`. The file records the selected executable, Steam App ID when available, and launch mode. Diagnostics are written to `resgoth.log` in the same directory.
 
 ## Distribution and Licensing
 
