@@ -19,6 +19,8 @@ Resgoth is a Windows launcher that temporarily changes the primary display mode 
 
 Settings are stored in `resgoth.ini` and diagnostics in `resgoth.log`, both next to the executable.
 
+Some games display a resolution from their own configuration or internal renderer rather than the active Windows display mode. Treat that value as informational: Resgoth applies the selected launch mode before starting the game. The selected mode remains active unless the game changes it itself.
+
 ## Limitations
 
 If Resgoth or Windows closes unexpectedly while a game is running, the display mode may not be restored automatically. In that case, choose your usual resolution in Windows display settings.
