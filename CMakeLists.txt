@@ -12,7 +12,7 @@ find_package(Qt6 COMPONENTS
         Widgets
         REQUIRED)
 
-add_executable(resgoth
+add_executable(resgoth WIN32
         app_icon.rc
         main.cpp
         resources.qrc
