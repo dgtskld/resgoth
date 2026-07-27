@@ -25,18 +25,29 @@ If Resgoth or Windows closes unexpectedly while a game is running, the display m
 
 ## Building
 
-Development builds use Qt 6 and CMake:
+Requirements:
+
+- CMake 4.3 or later
+- Ninja
+- Qt 6.11.1 for MinGW 64-bit
+- A matching MinGW-w64 compiler available in `PATH`
+
+Set `QtPrefix` to the root directory of the Qt kit. The compiler and Qt kit must use the same MinGW architecture.
+
+### Debug
 
 ```powershell
-cmake -S . -B build/debug -DCMAKE_PREFIX_PATH="C:\Qt\6.11.1\mingw_64"
-cmake --build build/debug
+$QtPrefix = 'C:\Qt\6.11.1\mingw_64'
+cmake -S . -B build\debug -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH="$QtPrefix"
+cmake --build build\debug --parallel
 ```
 
-Release builds are dynamically linked and deploy Qt beside the executable. Build them with the installed Qt kit:
+### Release
 
 ```powershell
-cmake -S . -B build/release -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="C:\Qt\6.11.1\mingw_64"
-cmake --build build/release --parallel
+$QtPrefix = 'C:\Qt\6.11.1\mingw_64'
+cmake -S . -B build\release -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$QtPrefix"
+cmake --build build\release --parallel
 ```
 
-Keep the executable, Qt DLLs, and `plugins` directory together when copying or packaging the application.
+The Release output is dynamically linked. Keep `resgoth.exe`, the Qt DLLs, and the `plugins` directory together when copying or packaging the application.
