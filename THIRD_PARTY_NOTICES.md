@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-## Qt 6.11.1
+## Qt 6
 
 Resgoth dynamically links the following Qt components:
 
