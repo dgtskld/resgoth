@@ -9,6 +9,7 @@
 #include <QIcon>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QSet>
 #include <QVBoxLayout>
@@ -103,7 +104,10 @@ void MainWindow::setupUi() {
     restoreButton = new QPushButton(QStringLiteral("Restore now"), centralWidget);
     restoreButton->setEnabled(false);
     restoreButton->setToolTip(QStringLiteral("Available after a launch mode has been applied."));
+    auto *aboutButton = new QPushButton(QStringLiteral("About"), centralWidget);
+    aboutButton->setToolTip(QStringLiteral("Show license information."));
     auto *buttonsLayout = new QHBoxLayout();
+    buttonsLayout->addWidget(aboutButton);
     buttonsLayout->addWidget(applyButton);
     buttonsLayout->addWidget(restoreButton);
     buttonsLayout->addWidget(launchButton, 0, Qt::AlignRight);
@@ -134,6 +138,10 @@ void MainWindow::setupUi() {
     connect(applyButton, &QPushButton::clicked, this, &MainWindow::applyDisplayMode);
     connect(launchButton, &QPushButton::clicked, this, &MainWindow::launchGame);
     connect(restoreButton, &QPushButton::clicked, this, &MainWindow::restoreDisplayMode);
+    connect(aboutButton, &QPushButton::clicked, this, [this] {
+        QMessageBox::about(this, QStringLiteral("About Resgoth"),
+                           QStringLiteral("Resgoth\n\nThis application uses Qt 6 under the GNU Lesser General Public License version 3.0.\n\nSee THIRD_PARTY_NOTICES.md, QT_THIRD_PARTY_ATTRIBUTIONS.md, QT_SOURCE_AVAILABILITY.txt, and the LICENSES directory next to the executable."));
+    });
     connect(&gameLauncher, &GameLauncher::gameStarted, this, [this] {
         statusLabel->setText(QStringLiteral("Game is running. The original display mode will be restored when it exits."));
     });

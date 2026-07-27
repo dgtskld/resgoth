@@ -1,0 +1,7 @@
+Qt Source Availability
+
+This release of Resgoth is built with unmodified Qt @QT_VERSION@ from QtBase (Qt Core, Qt GUI, Qt Widgets, and the qwindows platform plugin).
+
+The complete corresponding QtBase source archive for this exact version is included as the separate release asset `qtbase-everywhere-src-@QT_VERSION@.tar.xz`. Its SHA-256 checksum is listed in SHA256SUMS.txt.
+
+The Qt libraries are dynamically linked and can be replaced with compatible modified versions. See THIRD_PARTY_NOTICES.md and LICENSES for license texts.

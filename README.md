@@ -12,10 +12,18 @@ Resgoth is a Windows launcher that temporarily changes the primary display mode 
 
 ## Download and Run
 
-1. Open the [latest release](https://github.com/dgtskld/resgoth/releases/latest) and download the ZIP archive named `resgoth-...-windows-x64.zip`. Do not download the automatically generated `Source code` archives.
+1. Open the [latest release](https://github.com/dgtskld/resgoth/releases/latest) and download the ZIP archive named `resgoth-...-windows-x64.zip`. Do not download the automatically generated `Source code` archives or the separate `qtbase` source archive unless you need the Qt source for license or development purposes.
 2. Extract the ZIP to any writable folder, for example `C:\Games\Resgoth`.
-3. Keep all extracted files and folders together. In particular, do not move `resgoth.exe` away from the Qt DLLs or the `plugins` folder.
+3. Keep all extracted files and folders together. In particular, do not move `resgoth.exe` away from the Qt DLLs or the `platforms` folder.
 4. Start `resgoth.exe`.
+
+### Verify the Download
+
+`SHA256SUMS.txt` contains the SHA-256 checksum of the release ZIP. In PowerShell, run the following command from the folder containing the downloaded ZIP and compare its `Hash` value with the value in `SHA256SUMS.txt`:
+
+```powershell
+Get-FileHash .\resgoth-v0.1.2-windows-x64.zip -Algorithm SHA256
+```
 
 ## Use
 

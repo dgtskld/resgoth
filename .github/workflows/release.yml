@@ -8,6 +8,10 @@ on:
 
 permissions: {}
 
+env:
+  QT_VERSION: "6.10.2"
+  QT_SOURCE_URL: "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtbase-everywhere-src-6.10.2.tar.xz"
+
 jobs:
   build-release:
     runs-on: windows-2022
@@ -25,7 +29,7 @@ jobs:
         with:
           # aqtinstall 3.3.0 cannot read Qt's newer 6.11 repository metadata.
           # 6.10.2 uses the supported metadata layout and is sufficient for this app.
-          version: "6.10.2"
+          version: ${{ env.QT_VERSION }}
           arch: "win64_msvc2022_64"
 
       - name: Configure and build
@@ -43,6 +47,8 @@ jobs:
           $packageDirectory = "dist\$releaseName"
           $platformsDirectory = "$packageDirectory\platforms"
           $zipPath = "dist\$releaseName.zip"
+          $qtSourceArchiveName = "qtbase-everywhere-src-$env:QT_VERSION.tar.xz"
+          $qtSourceArchivePath = "dist\$qtSourceArchiveName"
 
           New-Item -ItemType Directory -Path $packageDirectory -Force | Out-Null
           New-Item -ItemType Directory -Path $platformsDirectory -Force | Out-Null
@@ -50,12 +56,19 @@ jobs:
           & "$qtRoot\bin\windeployqt.exe" --release --compiler-runtime --no-libraries --no-plugins --no-translations --no-system-d3d-compiler --no-opengl-sw --dir $packageDirectory "$packageDirectory\resgoth.exe"
           Copy-Item "$qtRoot\bin\Qt6Core.dll", "$qtRoot\bin\Qt6Gui.dll", "$qtRoot\bin\Qt6Widgets.dll" -Destination $packageDirectory
           Copy-Item "$qtRoot\plugins\platforms\qwindows.dll" -Destination $platformsDirectory
-          Copy-Item "README.md", "THIRD_PARTY_NOTICES.md" -Destination $packageDirectory
+          Copy-Item "THIRD_PARTY_NOTICES.md" -Destination $packageDirectory
+          Copy-Item "QT_THIRD_PARTY_ATTRIBUTIONS.md" -Destination $packageDirectory
           Copy-Item "LICENSES" -Destination $packageDirectory -Recurse
+          $sourceAvailability = Get-Content "QT_SOURCE_AVAILABILITY.txt.in" -Raw
+          $sourceAvailability = $sourceAvailability.Replace("@QT_VERSION@", $env:QT_VERSION)
+          [System.IO.File]::WriteAllText("$packageDirectory\QT_SOURCE_AVAILABILITY.txt", $sourceAvailability, [System.Text.UTF8Encoding]::new($false))
+
+          Invoke-WebRequest -Uri $env:QT_SOURCE_URL -OutFile $qtSourceArchivePath
 
           Compress-Archive -Path "$packageDirectory\*" -DestinationPath $zipPath -Force
-          $hash = (Get-FileHash $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
-          [System.IO.File]::WriteAllText("dist\SHA256SUMS.txt", "$hash  $releaseName.zip`n", [System.Text.UTF8Encoding]::new($false))
+          $releaseHash = (Get-FileHash $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          $sourceHash = (Get-FileHash $qtSourceArchivePath -Algorithm SHA256).Hash.ToLowerInvariant()
+          [System.IO.File]::WriteAllText("dist\SHA256SUMS.txt", "$releaseHash  $releaseName.zip`n$sourceHash  $qtSourceArchiveName`n", [System.Text.UTF8Encoding]::new($false))
 
       - name: Upload release files
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -63,6 +76,7 @@ jobs:
           name: resgoth-${{ github.ref_name }}-windows-x64
           path: |
             dist/*.zip
+            dist/*.tar.xz
             dist/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 14
@@ -109,4 +123,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh release create "$env:GITHUB_REF_NAME" dist\*.zip dist\SHA256SUMS.txt --generate-notes --title "Resgoth $env:GITHUB_REF_NAME"
+          gh release create "$env:GITHUB_REF_NAME" dist\*.zip dist\*.tar.xz dist\SHA256SUMS.txt --generate-notes --title "Resgoth $env:GITHUB_REF_NAME"
