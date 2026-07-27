@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QIcon>
 #include <QProxyStyle>
 
 #include "main_window.h"
@@ -20,6 +21,7 @@ public:
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
+    QApplication::setWindowIcon(QIcon(QStringLiteral(":/resgoth.png")));
     a.setStyle(new FastToolTipStyle(a.style()->name()));
 
     QApplication::setOrganizationName("Resgoth");

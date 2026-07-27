@@ -13,7 +13,9 @@ find_package(Qt6 COMPONENTS
         REQUIRED)
 
 add_executable(resgoth
+        app_icon.rc
         main.cpp
+        resources.qrc
         src/app_config.cpp
         src/display_mode_service.cpp
         src/game_launcher.cpp

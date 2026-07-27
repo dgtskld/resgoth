@@ -6,6 +6,7 @@
 #include <QFileInfo>
 #include <QFormLayout>
 #include <QHBoxLayout>
+#include <QIcon>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
@@ -46,6 +47,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 }
 
 void MainWindow::setupUi() {
+    setWindowIcon(QIcon(QStringLiteral(":/resgoth.png")));
     setWindowTitle(QStringLiteral("Resgoth"));
     setMinimumWidth(500);
 
