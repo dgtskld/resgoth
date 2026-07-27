@@ -10,6 +10,13 @@ Resgoth is a Windows launcher that temporarily changes the primary display mode 
 - Safe display-mode validation before applying a mode and automatic restoration after managed exits.
 - Detection of installed Steam games and tracking of the selected game process after Steam starts it.
 
+## Download and Run
+
+1. Open the [latest release](https://github.com/dgtskld/resgoth/releases/latest) and download the ZIP archive named `resgoth-...-windows-x64.zip`. Do not download the automatically generated `Source code` archives.
+2. Extract the ZIP to any writable folder, for example `C:\Games\Resgoth`.
+3. Keep all extracted files and folders together. In particular, do not move `resgoth.exe` away from the Qt DLLs or the `plugins` folder.
+4. Start `resgoth.exe`.
+
 ## Use
 
 1. Choose `Steam` or `Manual EXE` as the launch method. Steam is selected by default.
